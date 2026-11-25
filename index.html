@@ -75,7 +75,7 @@ button { font: inherit; color: inherit; }
 .lm small { font: 500 11px/1.2 var(--font-ui); color: var(--ink-2); }
 .rl, .sl, .lm { opacity: 0; transition: opacity .7s ease; }
 .rl.on, .sl.on, .lm.on { opacity: 1; }
-body:not([data-mode="cover"]):not([data-mode="ket"]) .rl, body:not([data-mode="cover"]) .sl, body:not([data-mode="cover"]):not([data-mode="ket"]) .lm { opacity: 0; }
+body:not([data-mode="cover"]):not([data-mode="ket"]) .rl, body:not([data-mode="cover"]) .sl, body:not([data-mode="cover"]):not([data-mode="ket"]) .lm { opacity: 0 !important; visibility: hidden; transition: opacity .7s ease, visibility 0s .7s; }
 
 /* ---- Bìa ---- */
 #story { position: relative; z-index: 2; }
