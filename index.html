@@ -143,6 +143,11 @@ body.at-end .fab, body.at-end .layers { opacity: 0; pointer-events: none; }
 
 .card .k { margin: 0 0 6px; font: 700 11px/1.3 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--mark); }
 .card h2 { margin: 0 0 8px; font: 700 clamp(20px, 2.2vw, 26px)/1.25 var(--font-display); text-wrap: balance; }
+.card .lg { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 5px; font: 500 13px/1.35 var(--font-ui); }
+.card .lg li { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 8px; }
+.card .lg i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, .45); }
+.card .lg b { font-weight: 600; color: #dfe6f1; font-variant-numeric: tabular-nums; }
+.card .src { margin-top: 10px; font-size: 12px; line-height: 1.45; color: #b9c4d6; }
 .card .todo { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #b9c4d6; }
 .step.short { min-height: 100vh; min-height: 100dvh; }
 
@@ -178,8 +183,10 @@ body.no-map .layers { display: none; }
   .menu { left: var(--gutter-l); right: var(--gutter-r); width: auto; }
   .menu .thesis-m { display: block; }
   .layers { max-width: calc(100vw - 150px); font-size: 11.5px; }
+  .card .lg.two { grid-template-columns: 1fr 1fr; column-gap: 10px; row-gap: 4px; font-size: 11.5px; }
+  .card .lg.two li { grid-template-columns: 12px 1fr; }
   .card { margin-left: 0; width: 100%; font-size: 15.5px; }
-  .step { padding: 18vh var(--gutter-r) 6vh var(--gutter-l); }
+  .step { padding: 30vh var(--gutter-r) 4vh var(--gutter-l); }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -319,7 +326,8 @@ body.no-map .layers { display: none; }
   //   cam: 'cover' (cả vùng 5-10-15 km) | 'site' (cả khu 114,76 ha) | 'close' (zoom sát hơn)
   //   base: lớp nền khu đất; net: mạng lưới đang nổi (null nếu chưa có)
   var STEPS = [
-    ['hientrang',    'Hiện trạng khu đất theo tờ bản vẽ số 1.',                                      { cam: 'site',  base: 'exist' }],
+    ['hientrang',    'Hiện trạng sử dụng đất theo tờ bản vẽ số 1, tô màu theo loại đất.', { cam: 'site', base: 'htlu', lu: 0.7, ln: 1, mask: 0.62, data: 1, legend: 'lu' }],
+    ['caodo',        'Cao độ tự nhiên trong ranh khu đồ án, chia thành 5 dải.', { cam: 'site', base: 'htel', el: 0.92, ln: 0.35, mask: 0.55, data: 1, legend: 'el', sub: true }, 'Đánh giá cao độ nền hiện trạng'],
     ['sddat',        'Quy hoạch sử dụng đất của phân khu nổi lên trên nền hiện trạng.',               { cam: 'site',  base: 'plan' }],
     ['giaothong',    'Mạng lưới giao thông theo tờ bản vẽ số 2.',                                     { cam: 'site',  base: 'plan',  net: 'road' }],
     ['sannen',       'Màu nền quy hoạch hạ xuống để thể hiện cao độ nền và hướng thoát nước.',        { cam: 'site',  base: 'faded', net: 'grade' }],
@@ -340,19 +348,28 @@ body.no-map .layers { display: none; }
     ['tongket',      'Tổng kết đồ án.',                                                               { cam: 'site',  base: 'plan',  net: 'all' }],
     ['ket',          'Phần kết.',                                                                     { cam: 'wide',  base: 'cover', short: true }]
   ];
+  var HT_LEGEND = [{"cls":"Đất ở (nhóm nhà ở)","color":"#a67c00"},{"cls":"Đất sản xuất công nghiệp","color":"#5300a6"},{"cls":"Đất nông nghiệp","color":"#00ff00"},{"cls":"Đất hạ tầng kỹ thuật khác","color":"#1d1326"},{"cls":"Đất nuôi trồng thủy sản","color":"#0080ff"},{"cls":"Đất trường học","color":"#804040"},{"cls":"Đất di tích, tôn giáo","color":"#4c0000"},{"cls":"Đất nghĩa trang","color":"#5b5b5b"},{"cls":"Đất dịch vụ","color":"#a60000"},{"cls":"Sông, suối","color":"#0053a6"},{"cls":"Đất giao thông","color":"#5b5b5b"}];
+  var EL_META = {"bounds":{"w":109.003233,"e":109.014653,"s":11.54205,"n":11.553929},"image":"assets/cao-do-hien-trang.png","size":[1800,1898],"bands":[{"aci":170,"min":-2.21,"max":0.5,"area_m2":270359.18,"color":"#1b4f9c"},{"aci":172,"min":0.5,"max":2.0,"area_m2":622179.14,"color":"#5fa8d3"},{"aci":174,"min":2.0,"max":3.5,"area_m2":219356.56,"color":"#b8e0a3"},{"aci":176,"min":3.5,"max":4.54,"area_m2":34264.23,"color":"#f2e18a"},{"aci":178,"min":4.54,"max":5.09,"area_m2":1455.9,"color":"#d9803a"}]};
   var STATE = {
     cover: { cam: 'cover', base: 'cover' },
     ranh:  { cam: 'site',  base: 'none' }
   };
   var BUILT = { 0: 'cover' };
-  STEPS.forEach(function (st, i) { STATE[st[0]] = st[2]; BUILT[i + 1] = 's-' + st[0]; });
+  var secNo = {}, secCount = 1;
+  STEPS.forEach(function (st) {
+    STATE[st[0]] = st[2];
+    if (!st[2].sub) { secCount++; BUILT[secCount - 1] = 's-' + st[0]; }
+    secNo[st[0]] = secCount;
+  });
   // Màu tạm cho từng nền và từng mạng: chỉ để thấy nhịp chuyển lớp, chưa phải dữ liệu bản vẽ.
   var BASES = {
     cover: { name: 'Ranh khu đồ án',       fill: '#d6402f', fo: 0.30, line: '#d6402f' },
     none:  { name: 'Ranh khu đồ án',       fill: '#d6402f', fo: 0.42, line: '#d6402f' },
     exist: { name: 'Hiện trạng',           fill: '#7c8594', fo: 0.42, line: '#5b6573' },
     plan:  { name: 'Quy hoạch phân khu',   fill: '#d6402f', fo: 0.46, line: '#d6402f' },
-    faded: { name: 'Quy hoạch (nền nhạt)', fill: '#d6402f', fo: 0.10, line: '#d6402f' }
+    faded: { name: 'Quy hoạch (nền nhạt)', fill: '#d6402f', fo: 0.10, line: '#d6402f' },
+    htlu:  { name: 'Hiện trạng: loại đất',      fill: '#7c8594', fo: 0,    line: '#d6402f' },
+    htel:  { name: 'Hiện trạng: cao độ nền',    fill: '#7c8594', fo: 0,    line: '#d6402f' }
   };
   var NETS = {
     road:   { name: 'Giao thông',          color: '#4a4f57' },
@@ -379,13 +396,26 @@ body.no-map .layers { display: none; }
   /* ===== 2b. Dựng các phần 2–21 ===== */
   (function buildSteps() {
     var main = $('story'), anchor = $('lookup');
-    STEPS.forEach(function (st, i) {
+    var fmt = function (x, d) { return x.toFixed(d).replace('.', ','); };
+    STEPS.forEach(function (st) {
+      var sub = !!st[2].sub, no = secNo[st[0]];
       var sec = document.createElement('section');
       sec.className = 'step' + (st[2].short ? ' short' : '');
       sec.id = 's-' + st[0]; sec.dataset.step = st[0];
       var art = document.createElement('article'); art.className = 'card'; art.id = 'card-' + st[0];
-      art.innerHTML = '<p class="k">Phần ' + (i + 2) + '</p><h2>' + esc(SECTIONS[i + 1]) + '</h2><p>' + esc(st[1]) + '</p>' +
-        '<p class="todo">Khung tạm: nội dung và dữ liệu bản vẽ sẽ được bổ sung.</p>';
+      var title = st[3] || SECTIONS[no - 1];
+      var html = '<p class="k">Phần ' + no + (sub ? ' · ' + esc(SECTIONS[no - 1]) : '') + '</p><h2>' + esc(title) + '</h2><p>' + esc(st[1]) + '</p>';
+      if (st[2].legend === 'lu') {
+        html += '<ul class="lg two">' + HT_LEGEND.map(function (x) { return '<li><i style="background:' + x.color + '"></i><span>' + esc(x.cls) + '</span><b></b></li>'; }).join('') + '</ul>';
+      } else if (st[2].legend === 'el') {
+        var tot = EL_META.bands.reduce(function (t, x) { return t + x.area_m2; }, 0);
+        html += '<ul class="lg">' + EL_META.bands.map(function (x) {
+          return '<li><i style="background:' + x.color + '"></i><span>' + fmt(x.min, 2) + ' đến ' + fmt(x.max, 2) + ' m</span><b>' + fmt(x.area_m2 / 1e4, 2) + ' ha · ' + fmt(x.area_m2 / tot * 100, 1) + '%</b></li>';
+        }).join('') + '</ul>';
+      }
+      html += st[2].data ? '<p class="src">Nguồn: bản vẽ hiện trạng của đồ án.</p>'
+                         : '<p class="todo">Khung tạm: nội dung và dữ liệu bản vẽ sẽ được bổ sung.</p>';
+      art.innerHTML = html;
       sec.appendChild(art); main.insertBefore(sec, anchor);
     });
   })();
@@ -481,9 +511,22 @@ body.no-map .layers { display: none; }
   }
 
   function composeStyle(base) {
-    var sources = { site: { type: 'geojson', data: SITE }, rings: { type: 'geojson', data: ringsFC([0, 0, 0]) } };
+    var abs = function (u) { try { return new URL(u, location.href).href; } catch (err) { return u; } };
+    var b = EL_META.bounds, ring = SITE.features[0].geometry.coordinates[0];
+    var sources = {
+      site: { type: 'geojson', data: SITE },
+      rings: { type: 'geojson', data: ringsFC([0, 0, 0]) },
+      'ht-mau': { type: 'geojson', data: abs('data/hientrang-mau.geojson') },
+      'ht-nen': { type: 'geojson', data: abs('data/hientrang-nen.geojson') },
+      'ht-el': { type: 'image', url: abs(EL_META.image), coordinates: [[b.w, b.n], [b.e, b.n], [b.e, b.s], [b.w, b.s]] },
+      'ht-mask': { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[108.4, 11.0], [109.6, 11.0], [109.6, 12.2], [108.4, 12.2], [108.4, 11.0]], ring.slice().reverse()] } } }
+    };
     var ringColor = ['match', ['get', 'k'], 5, 'rgba(61,81,112,0.95)', 10, 'rgba(61,81,112,0.7)', 15, 'rgba(61,81,112,0.5)', 'rgba(61,81,112,0.5)'];
     var layers = [
+      { id: 'ht-mau-fill', type: 'fill', source: 'ht-mau', paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0, 'fill-opacity-transition': { duration: 900 } } },
+      { id: 'ht-el', type: 'raster', source: 'ht-el', paint: { 'raster-opacity': 0, 'raster-opacity-transition': { duration: 900 }, 'raster-fade-duration': 0 } },
+      { id: 'ht-nen-line', type: 'line', source: 'ht-nen', layout: { 'line-join': 'round' }, paint: { 'line-color': '#2b3440', 'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.3, 17, 0.9], 'line-opacity': 0, 'line-opacity-transition': { duration: 900 } } },
+      { id: 'ht-mask', type: 'fill', source: 'ht-mask', paint: { 'fill-color': '#eceeec', 'fill-opacity': 0, 'fill-opacity-transition': { duration: 900 } } },
       { id: 'ring-fill', type: 'fill', source: 'rings', paint: { 'fill-color': 'rgba(61,81,112,0.05)', 'fill-opacity': 1, 'fill-opacity-transition': { duration: 900 } } },
       { id: 'ring-line', type: 'line', source: 'rings', paint: { 'line-color': ringColor, 'line-width': 1.4, 'line-opacity': 1, 'line-opacity-transition': { duration: 900 } } },
       { id: 'site-glow', type: 'line', source: 'site', paint: { 'line-color': '#d6402f', 'line-color-transition': { duration: 900 }, 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 7, 15, 12], 'line-blur': 5, 'line-opacity': 0, 'line-opacity-transition': { duration: 1200 } } },
@@ -554,7 +597,14 @@ body.no-map .layers { display: none; }
     }
     function camFor(m) {
       var kind = (STATE[m] || STATE.ranh).cam;
-      var cam = map.cameraForBounds(kind === 'cover' || kind === 'wide' ? ringBox : siteBox, { padding: pad(kind === 'cover' ? 'cover' : 'site'), maxZoom: 17 });
+      var pd = pad(kind === 'cover' ? 'cover' : 'site');
+      var cardEl = document.getElementById('card-' + m);
+      if (cardEl && window.innerWidth < 760 && kind !== 'cover') {
+        // Điện thoại: chừa chỗ phía trên thẻ chữ của chính bước này (thẻ nằm quanh 63% chiều cao khi bước ở giữa màn hình).
+        var hh = window.innerHeight, cardTop = hh * 0.63 - cardEl.offsetHeight / 2;
+        pd = { top: pd.top, left: pd.left, right: pd.right, bottom: Math.min(Math.round(hh * 0.6), Math.round(hh - cardTop + 10)) };
+      }
+      var cam = map.cameraForBounds(kind === 'cover' || kind === 'wide' ? ringBox : siteBox, { padding: pd, maxZoom: 17 });
       if (cam && kind === 'close') cam.zoom += 0.7;
       return cam;
     }
@@ -566,6 +616,10 @@ body.no-map .layers { display: none; }
       map.setPaintProperty('ring-fill', 'fill-opacity', cover ? 1 : 0);
       map.setPaintProperty('site-fill', 'fill-color', bs.fill);
       map.setPaintProperty('site-fill', 'fill-opacity', bs.fo);
+      map.setPaintProperty('ht-mau-fill', 'fill-opacity', st.lu || 0);
+      map.setPaintProperty('ht-el', 'raster-opacity', st.el || 0);
+      map.setPaintProperty('ht-nen-line', 'line-opacity', st.ln || 0);
+      map.setPaintProperty('ht-mask', 'fill-opacity', st.mask || 0);
       map.setPaintProperty('site-line', 'line-color', lineColor);
       map.setPaintProperty('site-glow', 'line-color', lineColor);
       map.setPaintProperty('site-line', 'line-width', net ? ['interpolate', ['linear'], ['zoom'], 8, 2.4, 15, 5] : ['interpolate', ['linear'], ['zoom'], 8, 1.6, 15, 3]);
@@ -573,7 +627,7 @@ body.no-map .layers { display: none; }
       if (lay) {
         lay.innerHTML = '<div><i style="background:' + bs.fill + ';opacity:' + Math.max(.35, bs.fo * 1.6) + '"></i>Nền: ' + esc(bs.name) + '</div>' +
           (net ? '<div><i style="background:' + net.color + '"></i>Mạng: ' + esc(net.name) + '</div>' : '') +
-          '<small>Khung tạm, chưa có dữ liệu bản vẽ</small>';
+          '<small>' + (st.data ? 'Dữ liệu: bản vẽ hiện trạng' : 'Khung tạm, chưa có dữ liệu bản vẽ') + '</small>';
       }
     }
     function setMode(m, instant) {

@@ -1,0 +1,46 @@
+[
+ {
+  "cls": "Đất ở (nhóm nhà ở)",
+  "color": "#a67c00"
+ },
+ {
+  "cls": "Đất sản xuất công nghiệp",
+  "color": "#5300a6"
+ },
+ {
+  "cls": "Đất nông nghiệp",
+  "color": "#00ff00"
+ },
+ {
+  "cls": "Đất hạ tầng kỹ thuật khác",
+  "color": "#1d1326"
+ },
+ {
+  "cls": "Đất nuôi trồng thủy sản",
+  "color": "#0080ff"
+ },
+ {
+  "cls": "Đất trường học",
+  "color": "#804040"
+ },
+ {
+  "cls": "Đất di tích, tôn giáo",
+  "color": "#4c0000"
+ },
+ {
+  "cls": "Đất nghĩa trang",
+  "color": "#5b5b5b"
+ },
+ {
+  "cls": "Đất dịch vụ",
+  "color": "#a60000"
+ },
+ {
+  "cls": "Sông, suối",
+  "color": "#0053a6"
+ },
+ {
+  "cls": "Đất giao thông",
+  "color": "#5b5b5b"
+ }
+]
