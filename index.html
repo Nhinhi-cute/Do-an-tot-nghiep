@@ -75,7 +75,7 @@ button { font: inherit; color: inherit; }
 .lm small { font: 500 11px/1.2 var(--font-ui); color: var(--ink-2); }
 .rl, .sl, .lm { opacity: 0; transition: opacity .7s ease; }
 .rl.on, .sl.on, .lm.on { opacity: 1; }
-body:not([data-mode="cover"]):not([data-mode="ket"]) .rl, body:not([data-mode="cover"]):not([data-mode="ket"]) .sl, body:not([data-mode="cover"]):not([data-mode="ket"]) .lm { opacity: 0; }
+body:not([data-mode="cover"]):not([data-mode="ket"]) .rl, body:not([data-mode="cover"]) .sl, body:not([data-mode="cover"]):not([data-mode="ket"]) .lm { opacity: 0; }
 
 /* ---- Bìa ---- */
 #story { position: relative; z-index: 2; }
@@ -195,11 +195,11 @@ body.no-map .layers { display: none; }
 }
 </style>
 
-<div id="map" role="img" aria-label="Bản đồ khu đồ án và các vòng bán kính 5, 10, 15 km"></div>
+<div id="map" role="img" aria-label="Bản đồ vị trí khu đất và các vòng bán kính 5, 10, 15 km"></div>
 
 <aside class="legend" id="legend" aria-label="Chú giải">
   <p>Chú giải</p>
-  <div><i class="sw-site"></i>Khu đồ án · 114,76 ha</div>
+  <div><i class="sw-site"></i>Vị trí khu đất · 114,76 ha</div>
   <div><i class="sw-ring"></i>Bán kính 5 · 10 · 15 km</div>
 </aside>
 <div class="credit" id="credit" hidden>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a></div>
@@ -516,6 +516,7 @@ body.no-map .layers { display: none; }
     var sources = {
       site: { type: 'geojson', data: SITE },
       rings: { type: 'geojson', data: ringsFC([0, 0, 0]) },
+      pulse: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       'ht-mau': { type: 'geojson', data: abs('data/hientrang-mau.geojson') },
       'ht-nen': { type: 'geojson', data: abs('data/hientrang-nen.geojson') },
       'ht-el': { type: 'image', url: abs(EL_META.image), coordinates: [[b.w, b.n], [b.e, b.n], [b.e, b.s], [b.w, b.s]] },
@@ -529,6 +530,7 @@ body.no-map .layers { display: none; }
       { id: 'ht-mask', type: 'fill', source: 'ht-mask', paint: { 'fill-color': '#eceeec', 'fill-opacity': 0, 'fill-opacity-transition': { duration: 900 } } },
       { id: 'ring-fill', type: 'fill', source: 'rings', paint: { 'fill-color': 'rgba(61,81,112,0.05)', 'fill-opacity': 1, 'fill-opacity-transition': { duration: 900 } } },
       { id: 'ring-line', type: 'line', source: 'rings', paint: { 'line-color': ringColor, 'line-width': 1.4, 'line-opacity': 1, 'line-opacity-transition': { duration: 900 } } },
+      { id: 'ring-pulse', type: 'line', source: 'pulse', paint: { 'line-color': 'rgba(61,81,112,1)', 'line-width': 1.6, 'line-opacity': ['get', 'o'] } },
       { id: 'site-glow', type: 'line', source: 'site', paint: { 'line-color': '#d6402f', 'line-color-transition': { duration: 900 }, 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 7, 15, 12], 'line-blur': 5, 'line-opacity': 0, 'line-opacity-transition': { duration: 1200 } } },
       { id: 'site-fill', type: 'fill', source: 'site', paint: { 'fill-color': '#d6402f', 'fill-color-transition': { duration: 900 }, 'fill-opacity': 0, 'fill-opacity-transition': { duration: 1200 } } },
       { id: 'site-line', type: 'line', source: 'site', layout: { 'line-join': 'round' }, paint: { 'line-color': '#d6402f', 'line-color-transition': { duration: 900 }, 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.6, 15, 3], 'line-opacity': 0, 'line-opacity-transition': { duration: 1200 } } }
@@ -657,12 +659,34 @@ body.no-map .layers { display: none; }
       lmEls.forEach(function (el, i) { if (t > T.landmarks + i * 250) el.classList.add('on'); });
       if (t < T.end) introRAF = requestAnimationFrame(tick); else finishIntro(false);
     }
+    // Sóng lan lặp lại ở bìa: mỗi PERIOD ms phát một đợt 3 vòng, lệch nhau, chậm và mờ dần.
+    var PERIOD = 7000, WAVE = 4200, pulseRAF = 0, pulseT0 = 0, lastPulse = 0;
+    function pulseFrame(now) {
+      pulseRAF = requestAnimationFrame(pulseFrame);
+      if (now - lastPulse < 40) return;
+      lastPulse = now;
+      var on = (mode === 'cover' || mode === 'ket') && !document.hidden;
+      var src = map.getSource('pulse');
+      if (!src) return;
+      if (!on) { if (pulseT0 !== -1) { src.setData({ type: 'FeatureCollection', features: [] }); pulseT0 = -1; } return; }
+      if (pulseT0 === -1) pulseT0 = now;
+      var ph = (now - pulseT0) % PERIOD, feats = [];
+      RINGS_KM.forEach(function (km, i) {
+        var q = (ph - i * 450) / WAVE;
+        if (q <= 0 || q >= 1) return;
+        var e = 1 - Math.pow(1 - q, 2);
+        feats.push({ type: 'Feature', properties: { o: 0.5 * Math.sin(Math.PI * q) },
+          geometry: { type: 'Polygon', coordinates: [circleRing(center, RINGS_KM[RINGS_KM.length - 1] * 1000 * e, 96)] } });
+      });
+      src.setData({ type: 'FeatureCollection', features: feats });
+    }
+    function startPulse() { if (reduce || pulseRAF) return; pulseT0 = 0; pulseRAF = requestAnimationFrame(pulseFrame); }
     function finishIntro(skipped) {
       if (introDone) return;
       introDone = true;
       cancelAnimationFrame(introRAF);
       body.classList.remove('is-intro');
-      prog = [1, 1, 1]; setRings(); showSite();
+      prog = [1, 1, 1]; setRings(); showSite(); startPulse();
       ringEls.concat(lmEls, [siteEl]).forEach(function (el) { el.classList.add('on'); });
       if (skipped) { map.stop(); setMode(desired, true); }
       else if (desired !== mode) setMode(desired, false);
@@ -691,7 +715,7 @@ body.no-map .layers { display: none; }
         new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(destination(center[0], center[1], 318, km * 1000)).addTo(map);
         ringEls.push(el);
       });
-      siteEl = mk('sl', '<i class="dot"></i><span class="sl-t"><b>Khu đồ án</b><small>114,76 ha</small></span>');
+      siteEl = mk('sl', '<i class="dot"></i><span class="sl-t"><b>Vị trí khu đất</b><small>114,76 ha</small></span>');
       new maplibregl.Marker({ element: siteEl, anchor: 'left', offset: [0, -2] }).setLngLat(center).addTo(map);
       LANDMARKS.forEach(function (l) {
         var el = mk('lm', '<i></i><span><b>' + esc(l.name) + '</b><small>' + fmtKm(haversine(center, [l.lng, l.lat])) + ' km</small></span>');
