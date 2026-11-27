@@ -610,7 +610,7 @@ body.no-map .layers { display: none; }
       }
       var cam = map.cameraForBounds(kind === 'cover' || kind === 'wide' ? ringBox : siteBox, { padding: pd, maxZoom: 17 });
       if (cam && kind === 'close') cam.zoom += 0.7;
-      if (cam) { cam.pitch = (STATE[m] || {}).pitch || 0; cam.bearing = 0; if (cam.pitch) cam.zoom -= 0.15; }
+      if (cam) { cam.pitch = (STATE[m] || {}).pitch || 0; cam.bearing = 0; if (cam.pitch) cam.zoom += 0.12; }
       return cam;
     }
     var bK = 0, bRAF = 0;
