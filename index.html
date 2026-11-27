@@ -155,6 +155,9 @@ body.at-end .fab, body.at-end .layers { opacity: 0; pointer-events: none; }
 .card .lg li { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 8px; }
 .card .lg i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, .45); }
 .card .lg b { font-weight: 600; color: #dfe6f1; font-variant-numeric: tabular-nums; }
+.card .ph { position: relative; margin: 12px 0 0; border-radius: 6px; overflow: hidden; aspect-ratio: 1200 / 854; background: #2c3a52; }
+.card .ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.card .ph figcaption { position: absolute; right: 8px; bottom: 6px; padding: 1px 7px; border-radius: 3px; background: rgba(20, 28, 42, .55); color: #eef2f8; font: 500 11px/1.5 var(--font-ui); }
 .card .src { margin-top: 10px; font-size: 12px; line-height: 1.45; color: #b9c4d6; }
 .card .todo { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #b9c4d6; }
 .step.short { min-height: 100vh; min-height: 100dvh; }
@@ -350,7 +353,7 @@ body.no-map .layers { display: none; }
   //   cam: 'cover' (cả vùng 5-10-15 km) | 'site' (cả khu 114,76 ha) | 'close' (zoom sát hơn)
   //   base: lớp nền khu đất; net: mạng lưới đang nổi (null nếu chưa có)
   var STEPS = [
-    ['hientrang',    'Hiện trạng sử dụng đất theo tờ bản vẽ số 1, tô màu theo loại đất.', { cam: 'site', base: 'htlu', lu: 0.7, ln: 1, mask: 0.62, data: 1, legend: 'lu', b3d: 1, pitch: 42 }],
+    ['hientrang',    '', { cam: 'site', base: 'htlu', lu: 0.7, ln: 1, mask: 0.62, data: 1, legend: 'lu', b3d: 1, pitch: 42 }],
     ['caodo',        'Cao độ tự nhiên trong ranh khu đồ án, chia thành 5 dải.', { cam: 'site', base: 'htel', el: 0.92, ln: 0.35, mask: 0.55, data: 1, legend: 'el', sub: true }, 'Đánh giá cao độ nền hiện trạng'],
     ['sddat',        'Quy hoạch sử dụng đất của phân khu nổi lên trên nền hiện trạng.',               { cam: 'site',  base: 'plan' }],
     ['giaothong',    'Mạng lưới giao thông theo tờ bản vẽ số 2.',                                     { cam: 'site',  base: 'plan',  net: 'road' }],
@@ -365,7 +368,7 @@ body.no-map .layers { display: none; }
     ['nut',          'Nút điển hình và xử lý giao cắt giữa các mạng.',                                { cam: 'close', base: 'faded', net: 'all' }],
     ['chitiet500',   'Thiết kế chi tiết chiếu sáng tỷ lệ 1/500 cho khu dân cư 10,07 ha.',            { cam: 'close', base: 'faded', net: 'light' }],
     ['captao',       'Chi tiết cấu tạo mạng lưới.',                                                   { cam: 'close', base: 'faded', net: 'all' }],
-    ['cdgt',         'Giới thiệu chuyên đề.',                                                         { cam: 'site',  base: 'faded', net: 'backup' }],
+    ['cdgt',         'Giới thiệu chuyên đề.',                                                         { cam: 'site',  base: 'faded', net: 'backup', img: 'assets/anh-minh-hoa.jpg' }],
     ['cd1',          'Chuyên đề, phần 1.',                                                            { cam: 'site',  base: 'faded', net: 'backup' }],
     ['cd2gt',        'Giới thiệu phần 2 của chuyên đề.',                                              { cam: 'site',  base: 'faded', net: 'backup' }],
     ['cd2',          'Chuyên đề, phần 2.',                                                            { cam: 'site',  base: 'faded', net: 'backup' }],
@@ -428,7 +431,8 @@ body.no-map .layers { display: none; }
       sec.id = 's-' + st[0]; sec.dataset.step = st[0];
       var art = document.createElement('article'); art.className = 'card'; art.id = 'card-' + st[0];
       var title = st[3] || SECTIONS[no - 1];
-      var html = '<p class="k">Phần ' + no + (sub ? ' · ' + esc(SECTIONS[no - 1]) : '') + '</p><h2>' + esc(title) + '</h2><p>' + esc(st[1]) + '</p>';
+      var html = '<p class="k">Phần ' + no + (sub ? ' · ' + esc(SECTIONS[no - 1]) : '') + '</p><h2>' + esc(title) + '</h2>' + (st[1] ? '<p>' + esc(st[1]) + '</p>' : '') +
+        (st[2].img ? '<figure class="ph"><img src="' + st[2].img + '" alt="Ảnh minh hoạ khu đô thị ven sông" loading="lazy" decoding="async"><figcaption>Ảnh minh hoạ</figcaption></figure>' : '');
       if (st[2].legend === 'lu') {
         html += '<ul class="lg two">' + HT_LEGEND.map(function (x) { return '<li><i style="background:' + x.color + '"></i><span>' + esc(x.cls) + '</span><b></b></li>'; }).join('') + '</ul>';
       } else if (st[2].legend === 'el') {
@@ -437,7 +441,7 @@ body.no-map .layers { display: none; }
           return '<li><i style="background:' + x.color + '"></i><span>' + fmt(x.min, 2) + ' đến ' + fmt(x.max, 2) + ' m</span><b>' + fmt(x.area_m2 / 1e4, 2) + ' ha · ' + fmt(x.area_m2 / tot * 100, 1) + '%</b></li>';
         }).join('') + '</ul>';
       }
-      html += st[2].data ? '<p class="src">Nguồn: bản vẽ hiện trạng của đồ án.' + (st[2].b3d ? ' Khối nhà 3D: chiều cao ước tính.' : '') + '</p>'
+      html += st[2].data ? '<p class="src">Nguồn: Bản vẽ hiện trạng.</p>'
                          : '<p class="todo">Khung tạm: nội dung và dữ liệu bản vẽ sẽ được bổ sung.</p>';
       art.innerHTML = html;
       sec.appendChild(art); main.insertBefore(sec, anchor);
