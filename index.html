@@ -557,13 +557,47 @@ body.no-map .layers { display: none; }
       body.classList.toggle('past', window.scrollY > window.innerHeight * 0.55);
       var lk = $('lookup');
       body.classList.toggle('at-end', !!lk && lk.getBoundingClientRect().top < window.innerHeight * 0.5);
-      var onArt = false;
-      document.querySelectorAll('.step.article').forEach(function (a) { var r = a.getBoundingClientRect(); if (r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.5) onArt = true; });
-      body.classList.toggle('at-article', onArt);
+
     });
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+
+  /* Bản đồ trôi cùng trang: khi trang bài viết dâng lên, bản đồ (cùng thẻ cuối) bị đẩy lên khỏi màn hình;
+     khi trang bài viết hết, bản đồ của đoạn sau trôi lên từ phía dưới. */
+  var mapEl = $('map'), runs = null;
+  function findRuns() {
+    runs = [];
+    var arts = document.querySelectorAll('.step.article'), cur = null;
+    Array.prototype.forEach.call(arts, function (a) {
+      var prev = a.previousElementSibling;
+      if (cur && prev === cur.last) { cur.last = a; return; }
+      cur = { first: a, last: a, before: prev && prev.dataset.step };
+      runs.push(cur);
+    });
+    runs.forEach(function (r) { var n = r.last.nextElementSibling; r.after = n && n.dataset && n.dataset.step; });
+  }
+  function slideMap() {
+    if (!runs) findRuns();
+    var vh = window.innerHeight, y = 0, hide = false, inView = false, step = null;
+    runs.forEach(function (r) {
+      var T = r.first.getBoundingClientRect().top, B = r.last.getBoundingClientRect().bottom;
+      if (T < vh && B > 0) inView = true;
+      if (T <= 0 && B >= vh) { hide = true; step = (vh / 2 - T) < (B - T) / 2 ? r.before : r.after; }
+      else if (T > 0 && T < vh) y = T - vh;
+      else if (B > 0 && B < vh) y = B;
+    });
+    if (mapEl) {
+      mapEl.style.transform = y ? 'translate3d(0,' + Math.round(y) + 'px,0)' : '';
+      mapEl.style.visibility = hide ? 'hidden' : '';
+    }
+    body.classList.toggle('at-article', inView);
+    if (hide && step && window.__coverMap) window.__coverMap.setStep(step);
+  }
+  window.__slideMap = slideMap;
+  window.addEventListener('scroll', slideMap, { passive: true });
+  window.addEventListener('resize', slideMap);
+  slideMap();
 
   var cards = document.querySelectorAll('.card');
   if ('IntersectionObserver' in window) {
@@ -808,6 +842,8 @@ body.no-map .layers { display: none; }
       loaded = true;
       if (base) hideOldAdmin(map);
       bindUI();
+      window.__coverMap = { setStep: function (id) { desired = id; if (introDone && id !== mode) setMode(id, true); } };
+      if (window.__slideMap) window.__slideMap();
       body.classList.add('is-intro');
       RINGS_KM.forEach(function (km) {
         var el = mk('rl', '<span>' + km + ' km</span>');
@@ -847,6 +883,7 @@ body.no-map .layers { display: none; }
         var io = new IntersectionObserver(function (es) {
           es.forEach(function (e) {
             if (!e.isIntersecting) return;
+            if (e.target.classList.contains('article')) return; // trang bài viết không đổi trạng thái bản đồ
             desired = e.target.dataset.step;
             if (introDone && desired !== mode) setMode(desired, false);
           });
