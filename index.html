@@ -98,6 +98,14 @@ body:not([data-mode="cover"]):not([data-mode="ket"]) .rl, body:not([data-mode="c
 .kicker { margin: 0 0 12px; font: 600 11px/1.4 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
 h1 { margin: 0; font: 900 clamp(32px, 4.4vw, 56px)/1.08 var(--font-display); letter-spacing: -.01em; text-wrap: balance; }
 .sub { margin: 12px 0 0; font: 700 clamp(14px, 1.3vw, 17px)/1.4 var(--font-ui); color: var(--ink-2); }
+.credits { margin: 26px 0 0; padding-top: 16px; border-top: 1px solid rgba(61, 81, 112, .28); }
+.credits dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 8px 0; align-items: baseline; }
+.credits dt, .credits dd { padding-right: 0; }
+.credits dt { padding-right: 20px; }
+.credits .g2 { margin-top: 12px; }
+.credits dt { font: 600 10.5px/1.45 var(--font-ui); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); }
+.credits dd { margin: 0; font: 700 clamp(14px, 1.2vw, 16px)/1.45 var(--font-ui); }
+.credits dd.tbd { font-weight: 500; font-style: italic; color: var(--ink-2); }
 .lead { margin: 22px 0 0; font: 600 clamp(15px, 1.4vw, 18px)/1.6 var(--font-ui); }
 
 /* ---- Thành phần cố định ---- */
@@ -178,6 +186,12 @@ body.no-map .layers { display: none; }
   .search-btn, .thesis-line { display: none; }
   .menu-btn { display: inline-flex; }
   .titleblock { width: 100%; padding-top: 12px; }
+  .credits { margin-top: 14px; padding-top: 10px; }
+  .credits dl { gap: 4px 0; }
+  .credits dt { padding-right: 12px; }
+  .credits .g2 { margin-top: 8px; }
+  .credits dt { font-size: 9px; letter-spacing: .06em; }
+  .credits dd { font-size: 12.5px; line-height: 1.35; }
   .legend { display: none; }
   .inset { width: 92px; height: 118px; }
   .menu { left: var(--gutter-l); right: var(--gutter-r); width: auto; }
@@ -249,6 +263,16 @@ body.no-map .layers { display: none; }
       <h1>Khu dân cư Đông Nam</h1>
       <p class="sub">Phường Đông Hải, tỉnh Khánh Hòa - Quy mô 114.76ha</p>
       <p class="lead"><strong>Chuyên đề:</strong> Xây dựng mô hình Bản đồ sao số cấp năng lượng dự phòng cho đô thị gần biển phường Đông Hải, tỉnh Khánh Hòa.</p>
+      <div class="credits">
+        <dl>
+          <dt>Giảng viên hướng dẫn chính</dt><dd>TS. Lê Ngọc Thiên</dd>
+          <dt>Giảng viên giao thông - san nền</dt><dd class="tbd">Đang cập nhật</dd>
+          <dt>Giảng viên nước - môi trường</dt><dd class="tbd">Đang cập nhật</dd>
+          <dt class="g2">Sinh viên thực hiện</dt><dd class="g2">Võ Hoàng Mỹ Nhi</dd>
+          <dt>MSSV</dt><dd>22521000511</dd>
+          <dt>Lớp</dt><dd>KD22-NLTT</dd>
+        </dl>
+      </div>
     </div>
   </section>
 
@@ -529,7 +553,7 @@ body.no-map .layers { display: none; }
       { id: 'ht-el', type: 'raster', source: 'ht-el', paint: { 'raster-opacity': 0, 'raster-opacity-transition': { duration: 900 }, 'raster-fade-duration': 0 } },
       { id: 'ht-nen-line', type: 'line', source: 'ht-nen', layout: { 'line-join': 'round' }, paint: { 'line-color': '#2b3440', 'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.3, 17, 0.9], 'line-opacity': 0, 'line-opacity-transition': { duration: 900 } } },
       { id: 'ht-mask', type: 'fill', source: 'ht-mask', paint: { 'fill-color': '#eceeec', 'fill-opacity': 0, 'fill-opacity-transition': { duration: 900 } } },
-      { id: 'ht-nha-3d', type: 'fill-extrusion', source: 'ht-nha', paint: { 'fill-extrusion-color': '#f3efe8', 'fill-extrusion-height': 0, 'fill-extrusion-base': 0, 'fill-extrusion-opacity': 0.95 } },
+      { id: 'ht-nha-3d', type: 'fill-extrusion', source: 'ht-nha', layout: { visibility: 'none' }, paint: { 'fill-extrusion-color': '#f3efe8', 'fill-extrusion-height': 0, 'fill-extrusion-base': 0, 'fill-extrusion-opacity': 0.95 } },
       { id: 'ring-fill', type: 'fill', source: 'rings', paint: { 'fill-color': 'rgba(61,81,112,0.05)', 'fill-opacity': 1, 'fill-opacity-transition': { duration: 900 } } },
       { id: 'ring-line', type: 'line', source: 'rings', paint: { 'line-color': ringColor, 'line-width': 1.4, 'line-opacity': 1, 'line-opacity-transition': { duration: 900 } } },
       { id: 'ring-pulse', type: 'line', source: 'pulse', paint: { 'line-color': 'rgba(61,81,112,1)', 'line-width': 1.6, 'line-opacity': ['get', 'o'] } },
@@ -591,7 +615,10 @@ body.no-map .layers { display: none; }
     function pad(m) {
       var w = window.innerWidth, h = window.innerHeight, mobile = w < 760;
       if (m === 'cover') {
-        if (mobile) return { top: Math.round(h * 0.46), bottom: 84, left: 20, right: 20 };
+        if (mobile) {
+          var tbm = document.querySelector('.titleblock'), tbb = tbm ? tbm.getBoundingClientRect().bottom + window.scrollY : 0;
+          return { top: Math.round(Math.min(h * 0.66, Math.max(h * 0.46, tbb + 10))), bottom: 84, left: 20, right: 20 };
+        }
         // Máy tính: dành cột bên phải cho cụm chữ, các vòng nằm gọn ở bên trái.
         var tb = document.querySelector('.titleblock'), tl = tb ? tb.getBoundingClientRect().left : w * 0.62;
         return { top: 70, bottom: 90, left: 24, right: Math.max(Math.round(w * 0.06), Math.round(w - tl + 36)) };
@@ -618,11 +645,13 @@ body.no-map .layers { display: none; }
       if (!map.getLayer('ht-nha-3d')) return;
       cancelAnimationFrame(bRAF);
       var from = bK, t0 = performance.now(), dur = (reduce || from === to) ? 1 : (to ? 1400 : 700);
+      if (to) map.setLayoutProperty('ht-nha-3d', 'visibility', 'visible');
       (function step(now) {
         var q = Math.min(1, ((now || performance.now()) - t0) / dur);
         bK = from + (to - from) * (1 - Math.pow(1 - q, 3));
         map.setPaintProperty('ht-nha-3d', 'fill-extrusion-height', ['*', ['get', 'h'], bK]);
         if (q < 1) bRAF = requestAnimationFrame(step);
+        else if (!to) map.setLayoutProperty('ht-nha-3d', 'visibility', 'none');
       })();
     }
     function paintMode(m) {
@@ -676,7 +705,7 @@ body.no-map .layers { display: none; }
       if (t < T.end) introRAF = requestAnimationFrame(tick); else finishIntro(false);
     }
     // Sóng lan lặp lại ở bìa: mỗi PERIOD ms phát một đợt 3 vòng, lệch nhau, chậm và mờ dần.
-    var PERIOD = 7000, WAVE = 4200, pulseRAF = 0, pulseT0 = 0, lastPulse = 0;
+    var PERIOD = 13000, WAVE = 8500, pulseRAF = 0, pulseT0 = 0, lastPulse = 0;
     function pulseFrame(now) {
       pulseRAF = requestAnimationFrame(pulseFrame);
       if (now - lastPulse < 40) return;
@@ -688,7 +717,7 @@ body.no-map .layers { display: none; }
       if (pulseT0 === -1) pulseT0 = now;
       var ph = (now - pulseT0) % PERIOD, feats = [];
       RINGS_KM.forEach(function (km, i) {
-        var q = (ph - i * 450) / WAVE;
+        var q = (ph - i * 900) / WAVE;
         if (q <= 0 || q >= 1) return;
         var e = 1 - Math.pow(1 - q, 2);
         feats.push({ type: 'Feature', properties: { o: 0.5 * Math.sin(Math.PI * q) },
