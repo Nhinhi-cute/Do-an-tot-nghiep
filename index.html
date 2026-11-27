@@ -326,7 +326,7 @@ body.no-map .layers { display: none; }
   //   cam: 'cover' (cả vùng 5-10-15 km) | 'site' (cả khu 114,76 ha) | 'close' (zoom sát hơn)
   //   base: lớp nền khu đất; net: mạng lưới đang nổi (null nếu chưa có)
   var STEPS = [
-    ['hientrang',    'Hiện trạng sử dụng đất theo tờ bản vẽ số 1, tô màu theo loại đất.', { cam: 'site', base: 'htlu', lu: 0.7, ln: 1, mask: 0.62, data: 1, legend: 'lu' }],
+    ['hientrang',    'Hiện trạng sử dụng đất theo tờ bản vẽ số 1, tô màu theo loại đất.', { cam: 'site', base: 'htlu', lu: 0.7, ln: 1, mask: 0.62, data: 1, legend: 'lu', b3d: 1, pitch: 42 }],
     ['caodo',        'Cao độ tự nhiên trong ranh khu đồ án, chia thành 5 dải.', { cam: 'site', base: 'htel', el: 0.92, ln: 0.35, mask: 0.55, data: 1, legend: 'el', sub: true }, 'Đánh giá cao độ nền hiện trạng'],
     ['sddat',        'Quy hoạch sử dụng đất của phân khu nổi lên trên nền hiện trạng.',               { cam: 'site',  base: 'plan' }],
     ['giaothong',    'Mạng lưới giao thông theo tờ bản vẽ số 2.',                                     { cam: 'site',  base: 'plan',  net: 'road' }],
@@ -413,7 +413,7 @@ body.no-map .layers { display: none; }
           return '<li><i style="background:' + x.color + '"></i><span>' + fmt(x.min, 2) + ' đến ' + fmt(x.max, 2) + ' m</span><b>' + fmt(x.area_m2 / 1e4, 2) + ' ha · ' + fmt(x.area_m2 / tot * 100, 1) + '%</b></li>';
         }).join('') + '</ul>';
       }
-      html += st[2].data ? '<p class="src">Nguồn: bản vẽ hiện trạng của đồ án.</p>'
+      html += st[2].data ? '<p class="src">Nguồn: bản vẽ hiện trạng của đồ án.' + (st[2].b3d ? ' Khối nhà 3D: chiều cao ước tính.' : '') + '</p>'
                          : '<p class="todo">Khung tạm: nội dung và dữ liệu bản vẽ sẽ được bổ sung.</p>';
       art.innerHTML = html;
       sec.appendChild(art); main.insertBefore(sec, anchor);
@@ -519,6 +519,7 @@ body.no-map .layers { display: none; }
       pulse: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       'ht-mau': { type: 'geojson', data: abs('data/hientrang-mau.geojson') },
       'ht-nen': { type: 'geojson', data: abs('data/hientrang-nen.geojson') },
+      'ht-nha': { type: 'geojson', data: abs('data/nha-3d.geojson') },
       'ht-el': { type: 'image', url: abs(EL_META.image), coordinates: [[b.w, b.n], [b.e, b.n], [b.e, b.s], [b.w, b.s]] },
       'ht-mask': { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[108.4, 11.0], [109.6, 11.0], [109.6, 12.2], [108.4, 12.2], [108.4, 11.0]], ring.slice().reverse()] } } }
     };
@@ -528,6 +529,7 @@ body.no-map .layers { display: none; }
       { id: 'ht-el', type: 'raster', source: 'ht-el', paint: { 'raster-opacity': 0, 'raster-opacity-transition': { duration: 900 }, 'raster-fade-duration': 0 } },
       { id: 'ht-nen-line', type: 'line', source: 'ht-nen', layout: { 'line-join': 'round' }, paint: { 'line-color': '#2b3440', 'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.3, 17, 0.9], 'line-opacity': 0, 'line-opacity-transition': { duration: 900 } } },
       { id: 'ht-mask', type: 'fill', source: 'ht-mask', paint: { 'fill-color': '#eceeec', 'fill-opacity': 0, 'fill-opacity-transition': { duration: 900 } } },
+      { id: 'ht-nha-3d', type: 'fill-extrusion', source: 'ht-nha', paint: { 'fill-extrusion-color': '#f3efe8', 'fill-extrusion-height': 0, 'fill-extrusion-base': 0, 'fill-extrusion-opacity': 0.95 } },
       { id: 'ring-fill', type: 'fill', source: 'rings', paint: { 'fill-color': 'rgba(61,81,112,0.05)', 'fill-opacity': 1, 'fill-opacity-transition': { duration: 900 } } },
       { id: 'ring-line', type: 'line', source: 'rings', paint: { 'line-color': ringColor, 'line-width': 1.4, 'line-opacity': 1, 'line-opacity-transition': { duration: 900 } } },
       { id: 'ring-pulse', type: 'line', source: 'pulse', paint: { 'line-color': 'rgba(61,81,112,1)', 'line-width': 1.6, 'line-opacity': ['get', 'o'] } },
@@ -608,7 +610,20 @@ body.no-map .layers { display: none; }
       }
       var cam = map.cameraForBounds(kind === 'cover' || kind === 'wide' ? ringBox : siteBox, { padding: pd, maxZoom: 17 });
       if (cam && kind === 'close') cam.zoom += 0.7;
+      if (cam) { cam.pitch = (STATE[m] || {}).pitch || 0; cam.bearing = 0; if (cam.pitch) cam.zoom -= 0.15; }
       return cam;
+    }
+    var bK = 0, bRAF = 0;
+    function growBuildings(to) {
+      if (!map.getLayer('ht-nha-3d')) return;
+      cancelAnimationFrame(bRAF);
+      var from = bK, t0 = performance.now(), dur = (reduce || from === to) ? 1 : (to ? 1400 : 700);
+      (function step(now) {
+        var q = Math.min(1, ((now || performance.now()) - t0) / dur);
+        bK = from + (to - from) * (1 - Math.pow(1 - q, 3));
+        map.setPaintProperty('ht-nha-3d', 'fill-extrusion-height', ['*', ['get', 'h'], bK]);
+        if (q < 1) bRAF = requestAnimationFrame(step);
+      })();
     }
     function paintMode(m) {
       var st = STATE[m] || STATE.ranh, cover = st.cam === 'cover' || st.cam === 'wide';
@@ -622,6 +637,7 @@ body.no-map .layers { display: none; }
       map.setPaintProperty('ht-el', 'raster-opacity', st.el || 0);
       map.setPaintProperty('ht-nen-line', 'line-opacity', st.ln || 0);
       map.setPaintProperty('ht-mask', 'fill-opacity', st.mask || 0);
+      growBuildings(st.b3d ? 1 : 0);
       map.setPaintProperty('site-line', 'line-color', lineColor);
       map.setPaintProperty('site-glow', 'line-color', lineColor);
       map.setPaintProperty('site-line', 'line-width', net ? ['interpolate', ['linear'], ['zoom'], 8, 2.4, 15, 5] : ['interpolate', ['linear'], ['zoom'], 8, 1.6, 15, 3]);
