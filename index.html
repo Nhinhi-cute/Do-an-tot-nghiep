@@ -155,7 +155,11 @@ body.at-end .fab, body.at-end .layers { opacity: 0; pointer-events: none; }
 .card .lg li { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 8px; }
 .card .lg i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, .45); }
 .card .lg b { font-weight: 600; color: #dfe6f1; font-variant-numeric: tabular-nums; }
-.step.article { display: block; min-height: 0; padding: 14vh var(--gutter-r) 14vh var(--gutter-l); background: var(--paper); }
+.step.article { display: flow-root; min-height: 0; padding: 14vh var(--gutter-r) 8vh var(--gutter-l); background: var(--paper); }
+.step.before-article { min-height: 100vh; min-height: 100dvh; align-items: flex-end; padding-top: 0; padding-bottom: 0; }
+.step.article.after-map { padding-top: 28px; }
+.step.article.after-article { padding-top: 56px; }
+.step.then-article { padding-bottom: 0; }
 .read { max-width: 680px; margin: 0 auto; color: var(--ink); font: 400 17px/1.8 var(--font-ui); }
 .read .k { margin: 0 0 10px; font: 700 11px/1.3 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: #8a5a00; }
 .read h2 { margin: 0 0 22px; font: 700 clamp(26px, 3.6vw, 38px)/1.2 var(--font-display); text-wrap: balance; }
@@ -388,7 +392,7 @@ body.no-map .layers { display: none; }
     ['tonghop',      'Các mạng đường dây, đường ống xếp chồng theo lớp.',                             { cam: 'site',  base: 'faded', net: 'all' }],
     ['nut',          'Nút điển hình và xử lý giao cắt giữa các mạng.',                                { cam: 'close', base: 'faded', net: 'all' }],
     ['chitiet500',   'Thiết kế chi tiết chiếu sáng tỷ lệ 1/500 cho khu dân cư 10,07 ha.',            { cam: 'close', base: 'faded', net: 'light' }],
-    ['captao',       'Chi tiết cấu tạo mạng lưới.',                                                   { cam: 'close', base: 'faded', net: 'all' }],
+    ['captao',       'Chi tiết cấu tạo mạng lưới.',                                                   { cam: 'close', base: 'faded', net: 'all', article: 1 }],
     ['cdgt',         'Giới thiệu chuyên đề.',                                                         { cam: 'site',  base: 'faded', net: 'backup', article: 1, img: 'assets/anh-minh-hoa.jpg' }],
     ['cd1',          'Chuyên đề, phần 1.',                                                            { cam: 'site',  base: 'faded', net: 'backup' }],
     ['cd2gt',        'Giới thiệu phần 2 của chuyên đề.',                                              { cam: 'site',  base: 'faded', net: 'backup' }],
@@ -465,7 +469,9 @@ body.no-map .layers { display: none; }
       }
       html += st[2].data ? '<p class="src">Nguồn: Bản vẽ hiện trạng.</p>'
                          : '<p class="todo">Khung tạm: nội dung và dữ liệu bản vẽ sẽ được bổ sung.</p>';
-      if (st[2].article) {
+      if (st[2].article && st[0] !== 'cdgt') {
+        html = '<p class="k">Phần ' + no + '</p><h2>' + esc(title) + '</h2><p class="todo">Khung tạm: hình và chữ của phần này sẽ được bổ sung.</p>';
+      } else if (st[2].article) {
         html = '<p class="k">Phần ' + no + '</p><h2>' + esc(title) + '</h2>' +
           '<p class="sapo">Xây dựng mô hình Bản đồ sao số cấp năng lượng dự phòng cho đô thị gần biển phường Đông Hải, tỉnh Khánh Hòa.</p>' +
           (st[2].img ? '<figure class="ph"><img src="' + st[2].img + '" alt="Ảnh minh hoạ khu đô thị ven sông" loading="lazy" decoding="async"><figcaption>Ảnh minh hoạ</figcaption></figure>' : '') +
@@ -478,6 +484,14 @@ body.no-map .layers { display: none; }
       }
       art.innerHTML = html;
       sec.appendChild(art); main.insertBefore(sec, anchor);
+    });
+    // Trang bài viết nối liền ngay dưới thẻ cuối của đoạn bản đồ trước nó; hai trang bài viết liền nhau thành một trang.
+    Array.prototype.forEach.call(main.querySelectorAll('.step.article'), function (a) {
+      var prev = a.previousElementSibling;
+      if (!prev || !prev.classList.contains('step')) return;
+      var prevArt = prev.classList.contains('article');
+      prev.classList.add(prevArt ? 'then-article' : 'before-article');
+      a.classList.add(prevArt ? 'after-article' : 'after-map');
     });
   })();
 
