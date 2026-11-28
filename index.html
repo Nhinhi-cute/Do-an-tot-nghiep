@@ -185,6 +185,8 @@ body.past.at-article .layers { opacity: 0; pointer-events: none; }
 .card .ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .card .ph figcaption { position: absolute; right: 8px; bottom: 6px; padding: 1px 7px; border-radius: 3px; background: rgba(20, 28, 42, .55); color: #eef2f8; font: 500 11px/1.5 var(--font-ui); }
 .card .ph.pic { aspect-ratio: 16 / 9; margin-top: 12px; opacity: 0; transform: translateY(38px) scale(.92); box-shadow: 0 0 0 rgba(0,0,0,0); transition: opacity .7s ease .5s, transform .8s cubic-bezier(.2,.8,.2,1) .5s, box-shadow .8s ease .5s; }
+.card .ph.pic.tall { aspect-ratio: 929 / 1000; width: 64%; margin-left: auto; margin-right: auto; }
+.card .ph.pic.tall img { object-position: 50% 50%; }
 .card.active .ph.pic { opacity: 1; transform: none; box-shadow: 0 14px 30px rgba(8,14,26,.45); }
 @media (prefers-reduced-motion: reduce) { .card .ph.pic { opacity: 1; transform: none; transition: none; } }
 .card .ph.pic img { object-position: 50% 30%; }
@@ -416,12 +418,12 @@ body.no-map .layers { display: none; }
     { pt: [109.00900072523604, 11.549715316178903], t: 'Điểm tập kết rác ven đường' },
     { pt: [109.00990495194617, 11.5513991318894],   t: 'Kênh thoát nước hai bên có đường' },
     { pt: [109.0050141665262,  11.54783386889641],  t: 'Đường nhựa, lưới điện và đèn chiếu sáng' },
-    { pt: [109.00443050692081, 11.545452037201283], t: 'Trụ viễn thông và đường dây trên không' },
+    { pt: [109.00443050692081, 11.545452037201283], t: 'Trụ viễn thông và đường dây trên không', tall: 1 },
     { pt: [109.00840249639982, 11.545141206301938], t: 'Đất trống chưa xây dựng' },
     { pt: [109.01388757866384, 11.54675186416823],  t: 'Đường ven kênh phía đông khu đất' }
   ];
   STEPS.splice.apply(STEPS, [1, 0].concat(PHOTOS.map(function (p, i) {
-    return ['pt' + (i + 1), '', { cam: 'pt', pt: p.pt, pi: i, base: 'htlu', lu: 0.6, ln: 1, mask: 0.72, data: 1, sub: true, photo: 'assets/hien-trang/' + (i + 1) + '.jpg', src: 'Ảnh chụp thực địa, 24/07/2026.' }, p.t];
+    return ['pt' + (i + 1), '', { cam: 'pt', pt: p.pt, pi: i, base: 'htlu', lu: 0.6, ln: 1, mask: 0.72, data: 1, sub: true, photo: 'assets/hien-trang/' + (i + 1) + '.jpg', tall: p.tall, src: 'Ảnh chụp thực địa, 24/07/2026.' }, p.t];
   })));
   var HT_LEGEND = [{"cls":"Đất ở (nhóm nhà ở)","color":"#a67c00"},{"cls":"Đất sản xuất công nghiệp","color":"#5300a6"},{"cls":"Đất nông nghiệp","color":"#00ff00"},{"cls":"Đất hạ tầng kỹ thuật khác","color":"#1d1326"},{"cls":"Đất nuôi trồng thủy sản","color":"#0080ff"},{"cls":"Đất trường học","color":"#804040"},{"cls":"Đất di tích, tôn giáo","color":"#4c0000"},{"cls":"Đất nghĩa trang","color":"#5b5b5b"},{"cls":"Đất dịch vụ","color":"#a60000"},{"cls":"Sông, suối","color":"#0053a6"},{"cls":"Đất giao thông","color":"#5b5b5b"}];
   var EL_META = {"bounds":{"w":109.003233,"e":109.014653,"s":11.54205,"n":11.553929},"image":"assets/cao-do-hien-trang.png","size":[1800,1898],"bands":[{"aci":170,"min":-2.21,"max":0.5,"area_m2":270359.18,"color":"#1b4f9c"},{"aci":172,"min":0.5,"max":2.0,"area_m2":622179.14,"color":"#5fa8d3"},{"aci":174,"min":2.0,"max":3.5,"area_m2":219356.56,"color":"#b8e0a3"},{"aci":176,"min":3.5,"max":4.54,"area_m2":34264.23,"color":"#f2e18a"},{"aci":178,"min":4.54,"max":5.09,"area_m2":1455.9,"color":"#d9803a"}]};
@@ -482,7 +484,7 @@ body.no-map .layers { display: none; }
       var title = st[3] || SECTIONS[no - 1];
       var html = '<p class="k">Phần ' + no + (sub ? ' · ' + esc(SECTIONS[no - 1]) : '') + '</p><h2>' + esc(title) + '</h2>' + (st[1] ? '<p>' + esc(st[1]) + '</p>' : '') +
         (st[2].img ? '<figure class="ph"><img src="' + st[2].img + '" alt="Ảnh minh hoạ khu đô thị ven sông" loading="lazy" decoding="async"><figcaption>Ảnh minh hoạ</figcaption></figure>' : '') +
-        (st[2].photo ? '<figure class="ph pic"><img src="' + st[2].photo + '" alt="' + esc(title) + '" loading="lazy" decoding="async"></figure>' : '');
+        (st[2].photo ? '<figure class="ph pic' + (st[2].tall ? ' tall' : '') + '"><img src="' + st[2].photo + '" alt="' + esc(title) + '" loading="lazy" decoding="async"></figure>' : '');
       if (st[2].legend === 'lu') {
         html += '<ul class="lg two">' + HT_LEGEND.map(function (x) { return '<li><i style="background:' + x.color + '"></i><span>' + esc(x.cls) + '</span><b></b></li>'; }).join('') + '</ul>';
       } else if (st[2].legend === 'el') {
