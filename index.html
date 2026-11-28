@@ -190,10 +190,9 @@ body.past.at-article .layers { opacity: 0; pointer-events: none; }
 .card.active .ph.pic { opacity: 1; transform: none; box-shadow: 0 14px 30px rgba(8,14,26,.45); }
 @media (prefers-reduced-motion: reduce) { .card .ph.pic { opacity: 1; transform: none; transition: none; } }
 .card .ph.pic img { object-position: 50% 30%; }
-.pp { opacity: 0; transition: opacity .5s; pointer-events: none; }
-.pp.show { opacity: 1; }
-.pp b { display: block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; background: #2d3f5e; box-shadow: 0 1px 4px rgba(0,0,0,.35); transition: transform .3s, background .3s; }
-.pp.on b { background: var(--site); transform: scale(1.5); }
+.pp { opacity: 0; transition: opacity .25s; pointer-events: none; }
+.pp.show { opacity: 1; transition: opacity .6s ease .9s; }
+.pp b { display: block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; background: var(--site); box-shadow: 0 0 0 5px rgba(214, 64, 47, .28), 0 1px 4px rgba(0,0,0,.35); }
 .card .src { margin-top: 10px; font-size: 12px; line-height: 1.45; color: #b9c4d6; }
 .card .todo { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #b9c4d6; }
 .step.short { min-height: 100vh; min-height: 100dvh; }
@@ -720,7 +719,7 @@ body.no-map .layers { display: none; }
 
     var mode = 'cover', desired = 'cover', introDone = false, introRAF = 0, introStart = 0, started = false;
     var prog = [0, 0, 0];
-    var ringEls = [], lmEls = [], ppEls = [], siteEl, loaded = false, curSpot = '';
+    var ringEls = [], lmEls = [], ppMarker = null, ppEl = null, siteEl, loaded = false, curSpot = '';
     // Nếu nền bản đồ tải về nhưng dựng không xong (sprite, font lỗi), quay về nền trơn.
     if (base) {
       setTimeout(function () {
@@ -804,7 +803,7 @@ body.no-map .layers { display: none; }
       growBuildings(st.b3d ? 1 : 0);
       setSpot(st.pt);
       Array.prototype.forEach.call(document.querySelectorAll('.card'), function (c) { c.classList.toggle('active', c.id === 'card-' + m); });
-      ppEls.forEach(function (e, i) { e.classList.toggle('show', !!st.pt); e.classList.toggle('on', st.pi === i); });
+      if (ppMarker) { if (st.pt) ppMarker.setLngLat(st.pt); ppEl.classList.toggle('show', !!st.pt); }
       map.setPaintProperty('site-line', 'line-color', lineColor);
       map.setPaintProperty('site-glow', 'line-color', lineColor);
       map.setPaintProperty('site-line', 'line-width', net ? ['interpolate', ['linear'], ['zoom'], 8, 2.4, 15, 5] : ['interpolate', ['linear'], ['zoom'], 8, 1.6, 15, 3]);
@@ -907,6 +906,8 @@ body.no-map .layers { display: none; }
         new maplibregl.Marker({ element: el, anchor: 'left', offset: [-4, 0] }).setLngLat([l.lng, l.lat]).addTo(map);
         lmEls.push(el);
       });
+      ppEl = document.createElement('div'); ppEl.className = 'pp'; ppEl.innerHTML = '<b></b>';
+      ppMarker = new maplibregl.Marker({ element: ppEl }).setLngLat(center).addTo(map);
       var cam = camFor('cover');
       if (cam) map.jumpTo({ center: cam.center, zoom: cam.zoom - 2.3 });
       map.once('idle', startIntro);
