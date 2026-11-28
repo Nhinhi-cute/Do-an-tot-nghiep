@@ -184,12 +184,14 @@ body.past.at-article .layers { opacity: 0; pointer-events: none; }
 .card .ph { position: relative; margin: 12px 0 0; border-radius: 6px; overflow: hidden; aspect-ratio: 1200 / 854; background: #2c3a52; }
 .card .ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .card .ph figcaption { position: absolute; right: 8px; bottom: 6px; padding: 1px 7px; border-radius: 3px; background: rgba(20, 28, 42, .55); color: #eef2f8; font: 500 11px/1.5 var(--font-ui); }
-.card .ph.pic { aspect-ratio: 16 / 9; margin-top: 10px; }
+.card .ph.pic { aspect-ratio: 16 / 9; margin-top: 12px; opacity: 0; transform: translateY(38px) scale(.92); box-shadow: 0 0 0 rgba(0,0,0,0); transition: opacity .7s ease .5s, transform .8s cubic-bezier(.2,.8,.2,1) .5s, box-shadow .8s ease .5s; }
+.card.active .ph.pic { opacity: 1; transform: none; box-shadow: 0 14px 30px rgba(8,14,26,.45); }
+@media (prefers-reduced-motion: reduce) { .card .ph.pic { opacity: 1; transform: none; transition: none; } }
 .card .ph.pic img { object-position: 50% 30%; }
 .pp { opacity: 0; transition: opacity .5s; pointer-events: none; }
 .pp.show { opacity: 1; }
-.pp b { display: block; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; background: #2d3f5e; color: #fff; font: 700 11px/16px var(--font-ui); text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.35); transition: transform .3s, background .3s; }
-.pp.on b { background: var(--site); transform: scale(1.3); }
+.pp b { display: block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; background: #2d3f5e; box-shadow: 0 1px 4px rgba(0,0,0,.35); transition: transform .3s, background .3s; }
+.pp.on b { background: var(--site); transform: scale(1.5); }
 .card .src { margin-top: 10px; font-size: 12px; line-height: 1.45; color: #b9c4d6; }
 .card .todo { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #b9c4d6; }
 .step.short { min-height: 100vh; min-height: 100dvh; }
@@ -419,7 +421,7 @@ body.no-map .layers { display: none; }
     { pt: [109.01388757866384, 11.54675186416823],  t: 'Đường ven kênh phía đông khu đất' }
   ];
   STEPS.splice.apply(STEPS, [1, 0].concat(PHOTOS.map(function (p, i) {
-    return ['pt' + (i + 1), 'Ảnh ' + (i + 1) + '/' + PHOTOS.length + ' · chụp ngày 24/07/2026.', { cam: 'pt', pt: p.pt, pi: i, base: 'htlu', lu: 0.6, ln: 1, mask: 0.72, data: 1, sub: true, photo: 'assets/hien-trang/' + (i + 1) + '.jpg', src: 'Ảnh chụp thực địa.' }, p.t];
+    return ['pt' + (i + 1), '', { cam: 'pt', pt: p.pt, pi: i, base: 'htlu', lu: 0.6, ln: 1, mask: 0.72, data: 1, sub: true, photo: 'assets/hien-trang/' + (i + 1) + '.jpg', src: 'Ảnh chụp thực địa, 24/07/2026.' }, p.t];
   })));
   var HT_LEGEND = [{"cls":"Đất ở (nhóm nhà ở)","color":"#a67c00"},{"cls":"Đất sản xuất công nghiệp","color":"#5300a6"},{"cls":"Đất nông nghiệp","color":"#00ff00"},{"cls":"Đất hạ tầng kỹ thuật khác","color":"#1d1326"},{"cls":"Đất nuôi trồng thủy sản","color":"#0080ff"},{"cls":"Đất trường học","color":"#804040"},{"cls":"Đất di tích, tôn giáo","color":"#4c0000"},{"cls":"Đất nghĩa trang","color":"#5b5b5b"},{"cls":"Đất dịch vụ","color":"#a60000"},{"cls":"Sông, suối","color":"#0053a6"},{"cls":"Đất giao thông","color":"#5b5b5b"}];
   var EL_META = {"bounds":{"w":109.003233,"e":109.014653,"s":11.54205,"n":11.553929},"image":"assets/cao-do-hien-trang.png","size":[1800,1898],"bands":[{"aci":170,"min":-2.21,"max":0.5,"area_m2":270359.18,"color":"#1b4f9c"},{"aci":172,"min":0.5,"max":2.0,"area_m2":622179.14,"color":"#5fa8d3"},{"aci":174,"min":2.0,"max":3.5,"area_m2":219356.56,"color":"#b8e0a3"},{"aci":176,"min":3.5,"max":4.54,"area_m2":34264.23,"color":"#f2e18a"},{"aci":178,"min":4.54,"max":5.09,"area_m2":1455.9,"color":"#d9803a"}]};
@@ -799,6 +801,7 @@ body.no-map .layers { display: none; }
       map.setPaintProperty('ht-mask', 'fill-opacity', st.mask || 0);
       growBuildings(st.b3d ? 1 : 0);
       setSpot(st.pt);
+      Array.prototype.forEach.call(document.querySelectorAll('.card'), function (c) { c.classList.toggle('active', c.id === 'card-' + m); });
       ppEls.forEach(function (e, i) { e.classList.toggle('show', !!st.pt); e.classList.toggle('on', st.pi === i); });
       map.setPaintProperty('site-line', 'line-color', lineColor);
       map.setPaintProperty('site-glow', 'line-color', lineColor);
@@ -903,7 +906,7 @@ body.no-map .layers { display: none; }
         lmEls.push(el);
       });
       PHOTOS.forEach(function (p, i) {
-        var el = document.createElement('div'); el.className = 'pp'; el.innerHTML = '<b>' + (i + 1) + '</b>';
+        var el = document.createElement('div'); el.className = 'pp'; el.innerHTML = '<b></b>';
         new maplibregl.Marker({ element: el }).setLngLat(p.pt).addTo(map);
         ppEls.push(el);
       });
