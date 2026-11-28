@@ -184,6 +184,12 @@ body.past.at-article .layers { opacity: 0; pointer-events: none; }
 .card .ph { position: relative; margin: 12px 0 0; border-radius: 6px; overflow: hidden; aspect-ratio: 1200 / 854; background: #2c3a52; }
 .card .ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .card .ph figcaption { position: absolute; right: 8px; bottom: 6px; padding: 1px 7px; border-radius: 3px; background: rgba(20, 28, 42, .55); color: #eef2f8; font: 500 11px/1.5 var(--font-ui); }
+.card .ph.pic { aspect-ratio: 16 / 9; margin-top: 10px; }
+.card .ph.pic img { object-position: 50% 30%; }
+.pp { opacity: 0; transition: opacity .5s; pointer-events: none; }
+.pp.show { opacity: 1; }
+.pp b { display: block; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; background: #2d3f5e; color: #fff; font: 700 11px/16px var(--font-ui); text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.35); transition: transform .3s, background .3s; }
+.pp.on b { background: var(--site); transform: scale(1.3); }
 .card .src { margin-top: 10px; font-size: 12px; line-height: 1.45; color: #b9c4d6; }
 .card .todo { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #b9c4d6; }
 .step.short { min-height: 100vh; min-height: 100dvh; }
@@ -401,6 +407,20 @@ body.no-map .layers { display: none; }
     ['tongket',      'Tổng kết đồ án.',                                                               { cam: 'site',  base: 'plan',  net: 'all' }],
     ['ket',          'Phần kết.',                                                                     { cam: 'wide',  base: 'cover', short: true }]
   ];
+  // Ảnh thực địa (chụp 24/07/2026), toạ độ do tác giả ghi từ Google Maps. Mỗi ảnh là một bước phụ của phần 2.
+  var PHOTOS = [
+    { pt: [109.00697196941391, 11.544952136066746], t: 'Nhà máy nước Đông Mỹ Hải' },
+    { pt: [109.00726836756442, 11.545334488555735], t: 'Trung tâm Dịch vụ, Sự nghiệp công phường Đông Hải' },
+    { pt: [109.00900072523604, 11.549715316178903], t: 'Điểm tập kết rác ven đường' },
+    { pt: [109.00990495194617, 11.5513991318894],   t: 'Kênh thoát nước hai bên có đường' },
+    { pt: [109.0050141665262,  11.54783386889641],  t: 'Đường nhựa, lưới điện và đèn chiếu sáng' },
+    { pt: [109.00443050692081, 11.545452037201283], t: 'Trụ viễn thông và đường dây trên không' },
+    { pt: [109.00840249639982, 11.545141206301938], t: 'Đất trống chưa xây dựng' },
+    { pt: [109.01388757866384, 11.54675186416823],  t: 'Đường ven kênh phía đông khu đất' }
+  ];
+  STEPS.splice.apply(STEPS, [1, 0].concat(PHOTOS.map(function (p, i) {
+    return ['pt' + (i + 1), 'Ảnh ' + (i + 1) + '/' + PHOTOS.length + ' · chụp ngày 24/07/2026.', { cam: 'pt', pt: p.pt, pi: i, base: 'htlu', lu: 0.6, ln: 1, mask: 0.72, data: 1, sub: true, photo: 'assets/hien-trang/' + (i + 1) + '.jpg', src: 'Ảnh chụp thực địa.' }, p.t];
+  })));
   var HT_LEGEND = [{"cls":"Đất ở (nhóm nhà ở)","color":"#a67c00"},{"cls":"Đất sản xuất công nghiệp","color":"#5300a6"},{"cls":"Đất nông nghiệp","color":"#00ff00"},{"cls":"Đất hạ tầng kỹ thuật khác","color":"#1d1326"},{"cls":"Đất nuôi trồng thủy sản","color":"#0080ff"},{"cls":"Đất trường học","color":"#804040"},{"cls":"Đất di tích, tôn giáo","color":"#4c0000"},{"cls":"Đất nghĩa trang","color":"#5b5b5b"},{"cls":"Đất dịch vụ","color":"#a60000"},{"cls":"Sông, suối","color":"#0053a6"},{"cls":"Đất giao thông","color":"#5b5b5b"}];
   var EL_META = {"bounds":{"w":109.003233,"e":109.014653,"s":11.54205,"n":11.553929},"image":"assets/cao-do-hien-trang.png","size":[1800,1898],"bands":[{"aci":170,"min":-2.21,"max":0.5,"area_m2":270359.18,"color":"#1b4f9c"},{"aci":172,"min":0.5,"max":2.0,"area_m2":622179.14,"color":"#5fa8d3"},{"aci":174,"min":2.0,"max":3.5,"area_m2":219356.56,"color":"#b8e0a3"},{"aci":176,"min":3.5,"max":4.54,"area_m2":34264.23,"color":"#f2e18a"},{"aci":178,"min":4.54,"max":5.09,"area_m2":1455.9,"color":"#d9803a"}]};
   var STATE = {
@@ -459,7 +479,8 @@ body.no-map .layers { display: none; }
       if (st[2].article) { sec.className += ' article'; }
       var title = st[3] || SECTIONS[no - 1];
       var html = '<p class="k">Phần ' + no + (sub ? ' · ' + esc(SECTIONS[no - 1]) : '') + '</p><h2>' + esc(title) + '</h2>' + (st[1] ? '<p>' + esc(st[1]) + '</p>' : '') +
-        (st[2].img ? '<figure class="ph"><img src="' + st[2].img + '" alt="Ảnh minh hoạ khu đô thị ven sông" loading="lazy" decoding="async"><figcaption>Ảnh minh hoạ</figcaption></figure>' : '');
+        (st[2].img ? '<figure class="ph"><img src="' + st[2].img + '" alt="Ảnh minh hoạ khu đô thị ven sông" loading="lazy" decoding="async"><figcaption>Ảnh minh hoạ</figcaption></figure>' : '') +
+        (st[2].photo ? '<figure class="ph pic"><img src="' + st[2].photo + '" alt="' + esc(title) + '" loading="lazy" decoding="async"></figure>' : '');
       if (st[2].legend === 'lu') {
         html += '<ul class="lg two">' + HT_LEGEND.map(function (x) { return '<li><i style="background:' + x.color + '"></i><span>' + esc(x.cls) + '</span><b></b></li>'; }).join('') + '</ul>';
       } else if (st[2].legend === 'el') {
@@ -468,7 +489,7 @@ body.no-map .layers { display: none; }
           return '<li><i style="background:' + x.color + '"></i><span>' + fmt(x.min, 2) + ' đến ' + fmt(x.max, 2) + ' m</span><b>' + fmt(x.area_m2 / 1e4, 2) + ' ha · ' + fmt(x.area_m2 / tot * 100, 1) + '%</b></li>';
         }).join('') + '</ul>';
       }
-      html += st[2].data ? '<p class="src">Nguồn: Bản vẽ hiện trạng.</p>'
+      html += st[2].src ? '<p class="src">' + esc(st[2].src) + '</p>' : st[2].data ? '<p class="src">Nguồn: Bản vẽ hiện trạng.</p>'
                          : '<p class="todo">Khung tạm: nội dung và dữ liệu bản vẽ sẽ được bổ sung.</p>';
       if (st[2].article && st[0] !== 'cdgt') {
         html = '<p class="k">Phần ' + no + '</p><h2>' + esc(title) + '</h2><p class="todo">Khung tạm: hình và chữ của phần này sẽ được bổ sung.</p>';
@@ -636,6 +657,7 @@ body.no-map .layers { display: none; }
       'ht-nen': { type: 'geojson', data: abs('data/hientrang-nen.geojson') },
       'ht-nha': { type: 'geojson', data: abs('data/nha-3d.geojson') },
       'ht-el': { type: 'image', url: abs(EL_META.image), coordinates: [[b.w, b.n], [b.e, b.n], [b.e, b.s], [b.w, b.s]] },
+      spot: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       'ht-mask': { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[108.4, 11.0], [109.6, 11.0], [109.6, 12.2], [108.4, 12.2], [108.4, 11.0]], ring.slice().reverse()] } } }
     };
     var ringColor = ['match', ['get', 'k'], 5, 'rgba(61,81,112,0.95)', 10, 'rgba(61,81,112,0.7)', 15, 'rgba(61,81,112,0.5)', 'rgba(61,81,112,0.5)'];
@@ -650,6 +672,7 @@ body.no-map .layers { display: none; }
       { id: 'ring-pulse', type: 'line', source: 'pulse', paint: { 'line-color': 'rgba(61,81,112,1)', 'line-width': 1.6, 'line-opacity': ['get', 'o'] } },
       { id: 'site-glow', type: 'line', source: 'site', paint: { 'line-color': '#d6402f', 'line-color-transition': { duration: 900 }, 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 7, 15, 12], 'line-blur': 5, 'line-opacity': 0, 'line-opacity-transition': { duration: 1200 } } },
       { id: 'site-fill', type: 'fill', source: 'site', paint: { 'fill-color': '#d6402f', 'fill-color-transition': { duration: 900 }, 'fill-opacity': 0, 'fill-opacity-transition': { duration: 1200 } } },
+      { id: 'spot-line', type: 'line', source: 'spot', paint: { 'line-color': '#d6402f', 'line-width': 2, 'line-opacity': 0, 'line-opacity-transition': { duration: 700 } } },
       { id: 'site-line', type: 'line', source: 'site', layout: { 'line-join': 'round' }, paint: { 'line-color': '#d6402f', 'line-color-transition': { duration: 900 }, 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.6, 15, 3], 'line-opacity': 0, 'line-opacity-transition': { duration: 1200 } } }
     ];
     if (base) {
@@ -693,7 +716,7 @@ body.no-map .layers { display: none; }
 
     var mode = 'cover', desired = 'cover', introDone = false, introRAF = 0, introStart = 0, started = false;
     var prog = [0, 0, 0];
-    var ringEls = [], lmEls = [], siteEl, loaded = false;
+    var ringEls = [], lmEls = [], ppEls = [], siteEl, loaded = false, curSpot = '';
     // Nếu nền bản đồ tải về nhưng dựng không xong (sprite, font lỗi), quay về nền trơn.
     if (base) {
       setTimeout(function () {
@@ -726,7 +749,14 @@ body.no-map .layers { display: none; }
         var hh = window.innerHeight, cardTop = hh * 0.63 - cardEl.offsetHeight / 2;
         pd = { top: pd.top, left: pd.left, right: pd.right, bottom: Math.min(Math.round(hh * 0.6), Math.round(hh - cardTop + 10)) };
       }
-      var cam = map.cameraForBounds(kind === 'cover' || kind === 'wide' ? ringBox : siteBox, { padding: pd, maxZoom: 17 });
+      var cam;
+      if (kind === 'pt') {
+        var pp = STATE[m].pt, dla = 150 / 110574, dlo = 150 / (111320 * Math.cos(pp[1] * Math.PI / 180));
+        cam = map.cameraForBounds([[pp[0] - dlo, pp[1] - dla], [pp[0] + dlo, pp[1] + dla]], { padding: pd, maxZoom: 18 });
+        if (cam) { cam.pitch = 0; cam.bearing = 0; }
+        return cam;
+      }
+      cam = map.cameraForBounds(kind === 'cover' || kind === 'wide' ? ringBox : siteBox, { padding: pd, maxZoom: 17 });
       if (cam && kind === 'close') cam.zoom += 0.7;
       if (cam) { cam.pitch = (STATE[m] || {}).pitch || 0; cam.bearing = 0; if (cam.pitch) cam.zoom += 0.12; }
       return cam;
@@ -745,6 +775,16 @@ body.no-map .layers { display: none; }
         else if (!to) map.setLayoutProperty('ht-nha-3d', 'visibility', 'none');
       })();
     }
+    var WORLD = [[108.4, 11.0], [109.6, 11.0], [109.6, 12.2], [108.4, 12.2], [108.4, 11.0]];
+    function setSpot(pt) {
+      var key = pt ? pt.join(',') : '';
+      if (key === curSpot) return;
+      curSpot = key;
+      var circ = pt ? circleRing(pt, 130, 72) : null;
+      map.getSource('ht-mask').setData({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [WORLD, circ || siteRing.slice().reverse()] } });
+      map.getSource('spot').setData(circ ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [circ] } } : { type: 'FeatureCollection', features: [] });
+      map.setPaintProperty('spot-line', 'line-opacity', circ ? 1 : 0);
+    }
     function paintMode(m) {
       var st = STATE[m] || STATE.ranh, cover = st.cam === 'cover' || st.cam === 'wide';
       var bs = BASES[st.base] || BASES.none, net = st.net ? NETS[st.net] : null;
@@ -758,6 +798,8 @@ body.no-map .layers { display: none; }
       map.setPaintProperty('ht-nen-line', 'line-opacity', st.ln || 0);
       map.setPaintProperty('ht-mask', 'fill-opacity', st.mask || 0);
       growBuildings(st.b3d ? 1 : 0);
+      setSpot(st.pt);
+      ppEls.forEach(function (e, i) { e.classList.toggle('show', !!st.pt); e.classList.toggle('on', st.pi === i); });
       map.setPaintProperty('site-line', 'line-color', lineColor);
       map.setPaintProperty('site-glow', 'line-color', lineColor);
       map.setPaintProperty('site-line', 'line-width', net ? ['interpolate', ['linear'], ['zoom'], 8, 2.4, 15, 5] : ['interpolate', ['linear'], ['zoom'], 8, 1.6, 15, 3]);
@@ -859,6 +901,11 @@ body.no-map .layers { display: none; }
         var el = mk('lm', '<i></i><span><b>' + esc(l.name) + '</b><small>' + fmtKm(haversine(center, [l.lng, l.lat])) + ' km</small></span>');
         new maplibregl.Marker({ element: el, anchor: 'left', offset: [-4, 0] }).setLngLat([l.lng, l.lat]).addTo(map);
         lmEls.push(el);
+      });
+      PHOTOS.forEach(function (p, i) {
+        var el = document.createElement('div'); el.className = 'pp'; el.innerHTML = '<b>' + (i + 1) + '</b>';
+        new maplibregl.Marker({ element: el }).setLngLat(p.pt).addTo(map);
+        ppEls.push(el);
       });
       var cam = camFor('cover');
       if (cam) map.jumpTo({ center: cam.center, zoom: cam.zoom - 2.3 });
