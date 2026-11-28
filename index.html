@@ -190,9 +190,9 @@ body.past.at-article .layers { opacity: 0; pointer-events: none; }
 .card.active .ph.pic { opacity: 1; transform: none; box-shadow: 0 14px 30px rgba(8,14,26,.45); }
 @media (prefers-reduced-motion: reduce) { .card .ph.pic { opacity: 1; transform: none; transition: none; } }
 .card .ph.pic img { object-position: 50% 30%; }
-.pp { opacity: 0; transition: opacity .25s; pointer-events: none; }
-.pp.show { opacity: 1; transition: opacity .6s ease .9s; }
-.pp b { display: block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; background: var(--site); box-shadow: 0 0 0 5px rgba(214, 64, 47, .28), 0 1px 4px rgba(0,0,0,.35); }
+.pp { pointer-events: none; }
+.pp b { display: block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; background: var(--site); box-shadow: 0 0 0 5px rgba(214, 64, 47, .28), 0 1px 4px rgba(0,0,0,.35); opacity: 0; transition: opacity .25s; }
+.pp.show b { opacity: 1; transition: opacity .6s ease .9s; }
 .card .src { margin-top: 10px; font-size: 12px; line-height: 1.45; color: #b9c4d6; }
 .card .todo { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #b9c4d6; }
 .step.short { min-height: 100vh; min-height: 100dvh; }
