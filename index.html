@@ -905,11 +905,6 @@ body.no-map .layers { display: none; }
         new maplibregl.Marker({ element: el, anchor: 'left', offset: [-4, 0] }).setLngLat([l.lng, l.lat]).addTo(map);
         lmEls.push(el);
       });
-      PHOTOS.forEach(function (p, i) {
-        var el = document.createElement('div'); el.className = 'pp'; el.innerHTML = '<b></b>';
-        new maplibregl.Marker({ element: el }).setLngLat(p.pt).addTo(map);
-        ppEls.push(el);
-      });
       var cam = camFor('cover');
       if (cam) map.jumpTo({ center: cam.center, zoom: cam.zoom - 2.3 });
       map.once('idle', startIntro);
